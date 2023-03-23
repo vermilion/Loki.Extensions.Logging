@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Loki.Extensions.Logging.Logger;
+﻿namespace Loki.Extensions.Logging.Logger;
 
 internal sealed class NullScope : IDisposable
 {

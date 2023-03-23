@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Loki.Extensions.Logging.Helpers;
+﻿namespace Loki.Extensions.Logging.Helpers;
 
 internal static class Debouncer
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Loki.Extensions.Logging.Options;
@@ -38,10 +35,9 @@ public class LokiLogger : ILogger
 
         var message = new LokiMessage(messageText, logLevel)
         {
-            Message = messageText
+            Message = messageText,
+            AdditionalFields = GetAdditionalFields(logLevel, eventId, state, exception).ToArray()
         };
-
-        message.AdditionalFields = GetAdditionalFields(message.Level, eventId, state, exception).ToArray();
 
         _messageProcessor.SendMessage(message);
     }
@@ -57,12 +53,13 @@ public class LokiLogger : ILogger
         return ScopeProvider?.Push(state) ?? NullScope.Instance;
     }
 
-    private IEnumerable<KeyValuePair<string, object>> GetAdditionalFields<TState>(LokiSeverity logLevel, EventId eventId, TState state, Exception? exception)
+    private IEnumerable<KeyValuePair<string, object>> GetAdditionalFields<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception)
     {
         var additionalFields = Options.AdditionalFields
+            .Concat(GetLokiAdditionalFields(logLevel))
             .Concat(GetFactoryAdditionalFields(logLevel, eventId, exception))
             .Concat(GetScopeAdditionalFields())
-            .Concat(GetPredefinedAdditionalFields(logLevel, exception));
+            .Concat(GetPredefinedAdditionalFields(exception));
 
         foreach (var field in additionalFields)
         {
@@ -79,7 +76,17 @@ public class LokiLogger : ILogger
         }
     }
 
-    private IEnumerable<KeyValuePair<string, object>> GetFactoryAdditionalFields(LokiSeverity logLevel, EventId eventId, Exception? exception)
+    private IEnumerable<KeyValuePair<string, object>> GetLokiAdditionalFields(LogLevel logLevel)
+    {
+        var additionalFields = new Dictionary<string, object>
+        {
+            ["Level"] = logLevel.ToString()
+        };
+
+        return additionalFields.ToArray();
+    }
+
+    private IEnumerable<KeyValuePair<string, object>> GetFactoryAdditionalFields(LogLevel logLevel, EventId eventId, Exception? exception)
     {
         return Options.AdditionalFieldsFactory?.Invoke(logLevel, eventId, exception) ??
                Enumerable.Empty<KeyValuePair<string, object>>();
@@ -146,7 +153,7 @@ public class LokiLogger : ILogger
         return additionalFields;
     }
 
-    private IEnumerable<KeyValuePair<string, object>> GetPredefinedAdditionalFields(LokiSeverity logLevel, Exception? exception)
+    private IEnumerable<KeyValuePair<string, object>> GetPredefinedAdditionalFields(Exception? exception)
     {
         if (!Options.IncludePredefinedFields)
         {
@@ -168,7 +175,6 @@ public class LokiLogger : ILogger
             additionalFields["MachineName"] = Options.MachineName;
 
         additionalFields["Category"] = _name;
-        additionalFields["Level"] = logLevel.ToString();
 
         return additionalFields.ToArray();
     }

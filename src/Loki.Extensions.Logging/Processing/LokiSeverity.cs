@@ -2,9 +2,10 @@
 
 public enum LokiSeverity
 {
-    Debug = 0,
-    Informational = 1,
-    Warning = 2,
-    Critical = 3,
-    Error = 4
+    TRCE,
+    DBUG,
+    INFO,
+    WARN,
+    EROR,
+    CRIT
 }

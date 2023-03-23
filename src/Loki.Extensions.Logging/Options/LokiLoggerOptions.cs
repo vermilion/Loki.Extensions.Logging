@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Loki.Extensions.Logging.Processing;
+﻿using Loki.Extensions.Logging.Processing;
 using Microsoft.Extensions.Logging;
 
 namespace Loki.Extensions.Logging.Options;
@@ -45,7 +43,7 @@ public class LokiLoggerOptions
     /// <summary>
     /// Additional fields computed based on raw log data.
     /// </summary>
-    public Func<LokiSeverity, EventId, Exception?, Dictionary<string, object>>? AdditionalFieldsFactory { get; set; }
+    public Func<LogLevel, EventId, Exception?, Dictionary<string, object>>? AdditionalFieldsFactory { get; set; }
 
     /// <summary>
     /// Timeout used when sending logs via HTTP(S).

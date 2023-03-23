@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace Loki.Extensions.Logging.Samples.AspNetCore5.Controllers
 {
@@ -24,8 +20,14 @@ namespace Loki.Extensions.Logging.Samples.AspNetCore5.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            _logger.LogInformation("Getting weather at {weather_time}", DateTime.Now);
+            _logger.LogTrace("A trace level log");
             _logger.LogDebug("A debug level log");
+            _logger.LogInformation("A info level log");
+            _logger.LogWarning("A warn level log");
+            _logger.LogError("A error level log");
+            _logger.LogCritical("A critical level log");
+
+            _logger.LogInformation("Getting weather at {weather_time}", DateTime.Now);
 
             try
             {

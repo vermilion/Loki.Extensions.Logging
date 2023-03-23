@@ -1,5 +1,4 @@
-﻿using System;
-using Loki.Extensions.Logging.Options;
+﻿using Loki.Extensions.Logging.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

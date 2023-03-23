@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Loki.Extensions.Logging.Processing;
+﻿using Loki.Extensions.Logging.Processing;
 
 namespace Loki.Extensions.Logging.Providers;
 

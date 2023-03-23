@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using Loki.Extensions.Logging.Helpers;
 using Loki.Extensions.Logging.Logger;
 using Loki.Extensions.Logging.Options;

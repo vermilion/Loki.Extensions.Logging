@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Loki.Extensions.Logging.Processing;
 
@@ -33,12 +31,12 @@ public class LokiMessage
     {
         return logLevel switch
         {
-            LogLevel.Trace => LokiSeverity.Debug,
-            LogLevel.Debug => LokiSeverity.Debug,
-            LogLevel.Information => LokiSeverity.Informational,
-            LogLevel.Warning => LokiSeverity.Warning,
-            LogLevel.Error => LokiSeverity.Error,
-            LogLevel.Critical => LokiSeverity.Critical,
+            LogLevel.Trace => LokiSeverity.TRCE,
+            LogLevel.Debug => LokiSeverity.DBUG,
+            LogLevel.Information => LokiSeverity.INFO,
+            LogLevel.Warning => LokiSeverity.WARN,
+            LogLevel.Error => LokiSeverity.EROR,
+            LogLevel.Critical => LokiSeverity.CRIT,
             _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, "Log level not supported.")
         };
     }
