@@ -1,12 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<VersionPrefix>1.0.0</VersionPrefix>
 		<IsPackable>true</IsPackable>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
-		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<Title>Loki.Extensions.Logging</Title>
 		<Description>Grafana Loki provider for Microsoft.Extensions.Logging</Description>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
