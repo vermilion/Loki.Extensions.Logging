@@ -44,7 +44,7 @@ Logger options are taken from the "Loki" provider section in `appsettings.json` 
     },
     "Loki": {
       "Host": "localhost",
-      "Port": 3100,                 // Not required if using default 3100.
+      "Port": 3100,                  // Not required if using default 3100.
       "LogSource": "My.App.Name",    // Not required if set in code as above.
       "AdditionalFields": {          // Optional fields added to all logs.
         "foo": "bar"
@@ -58,7 +58,7 @@ Logger options are taken from the "Loki" provider section in `appsettings.json` 
 }
 ```
 
-For a full list of options, see [`LokiLoggerOptions`](src/Loki.Extensions.Logging/LokiLoggerOptions.cs). See the [samples](/samples) directory full examples. For more information on providers and logging in general, see the aspnetcore [logging documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging).
+For a full list of options, see [`LokiLoggerOptions`](src/Loki.Extensions.Logging/Options/LokiLoggerOptions.cs). See the [samples](/samples) directory full examples. For more information on providers and logging in general, see the aspnetcore [logging documentation](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging).
 
 ### Auto Reloading Config
 
