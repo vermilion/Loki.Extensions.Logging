@@ -5,7 +5,6 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Title>Loki.Extensions.Logging</Title>
 		<Description>Grafana Loki provider for Microsoft.Extensions.Logging</Description>
-		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<PackageTags>grafana loki microsoft logging extensions</PackageTags>
 	</PropertyGroup>
 
