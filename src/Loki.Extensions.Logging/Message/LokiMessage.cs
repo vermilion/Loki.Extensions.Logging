@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace Loki.Extensions.Logging.Processing;
+namespace Loki.Extensions.Logging.Message;
 
 // https://grafana.com/docs/loki/latest/api/#push-log-entries-to-loki
 public class LokiMessage

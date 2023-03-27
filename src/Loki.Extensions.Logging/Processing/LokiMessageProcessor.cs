@@ -1,30 +1,29 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks.Dataflow;
+using Loki.Extensions.Logging.Message;
 using Loki.Extensions.Logging.Providers;
 
 namespace Loki.Extensions.Logging.Processing;
 
-public class LokiMessageProcessor
+public class LokiMessageProcessor : ILokiMessageProcessor
 {
     private readonly BufferBlock<LokiMessage> _messageBuffer;
+    private readonly Task _processorTask;
+    private ILokiClient? _writer;
 
-    private Task _processorTask = Task.CompletedTask;
-
-    public LokiMessageProcessor(ILokiClient lokiClient)
+    public LokiMessageProcessor()
     {
-        LokiClient = lokiClient;
-
         _messageBuffer = new BufferBlock<LokiMessage>(new DataflowBlockOptions
         {
             BoundedCapacity = 10000
         });
+
+        _processorTask = Task.Run(StartAsync);
     }
 
-    internal ILokiClient LokiClient { get; set; }
-
-    public void Start()
+    public void SetWriter(ILokiClient writer)
     {
-        _processorTask = Task.Run(StartAsync);
+        _writer = writer;
     }
 
     private async Task StartAsync()
@@ -34,7 +33,9 @@ public class LokiMessageProcessor
             try
             {
                 var message = await _messageBuffer.ReceiveAsync();
-                await LokiClient.SendMessageAsync(message);
+
+                if (_writer is not null)
+                    await _writer.SendMessageAsync(message);
             }
             catch (InvalidOperationException)
             {
@@ -47,17 +48,19 @@ public class LokiMessageProcessor
         }
     }
 
-    public void Stop()
-    {
-        _messageBuffer.Complete();
-        _processorTask.Wait();
-    }
-
-    public void SendMessage(LokiMessage message)
+    public void EnqueueMessage(LokiMessage message)
     {
         if (!_messageBuffer.Post(message))
         {
             Debug.Fail("Failed to add Loki message to buffer.");
         }
+    }
+
+    public void Dispose()
+    {
+        _messageBuffer.Complete();
+        _processorTask.Wait();
+
+        _writer?.Dispose();
     }
 }

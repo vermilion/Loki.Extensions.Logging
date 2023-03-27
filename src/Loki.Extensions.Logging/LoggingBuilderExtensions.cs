@@ -1,4 +1,5 @@
 ﻿using Loki.Extensions.Logging.Options;
+using Loki.Extensions.Logging.Processing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -7,6 +8,9 @@ using Microsoft.Extensions.Options;
 
 namespace Loki.Extensions.Logging;
 
+/// <summary>
+/// Extensions for <see cref="ILoggingBuilder"/>
+/// </summary>
 public static class LoggingBuilderExtensions
 {
     /// <summary>
@@ -18,6 +22,7 @@ public static class LoggingBuilderExtensions
     {
         builder.AddConfiguration();
 
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILokiMessageProcessor, LokiMessageProcessor>());
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, LokiLoggerProvider>());
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<LokiLoggerOptions>, LokiLoggerOptionsSetup>());
         builder.Services.TryAddEnumerable(

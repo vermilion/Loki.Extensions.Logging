@@ -1,29 +1,44 @@
 ﻿using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Loki.Extensions.Logging.Message;
 using Loki.Extensions.Logging.Options;
 using Loki.Extensions.Logging.Processing;
+using Loki.Extensions.Logging.Providers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace Loki.Extensions.Logging.Logger;
+namespace Loki.Extensions.Logging;
 
-public class LokiLogger : ILogger
+/// <summary>
+/// Grafana Loki logger instance
+/// </summary>
+public class LokiLogger : ILogger, IDisposable
 {
     private static readonly Regex AdditionalFieldKeyRegex = new(@"^[\w\.\-]*$", RegexOptions.Compiled);
 
     private readonly string _name;
-    private readonly LokiMessageProcessor _messageProcessor;
+    private readonly ILokiMessageProcessor _messageProcessor;
+    private readonly IDisposable? _optionsChangeToken;
+    private LokiLoggerOptions _options;
 
-    public LokiLogger(string name, LokiMessageProcessor messageProcessor, LokiLoggerOptions options)
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public LokiLogger(string name, ILokiMessageProcessor messageProcessor, IOptionsMonitor<LokiLoggerOptions> options)
     {
         _name = name;
         _messageProcessor = messageProcessor;
-        Options = options;
+
+        _optionsChangeToken = options.OnChange(UpdateOptions);
+        UpdateOptions(options.CurrentValue);
     }
 
     internal IExternalScopeProvider? ScopeProvider { get; set; }
-    internal LokiLoggerOptions Options { get; set; }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         if (!IsEnabled(logLevel))
@@ -36,26 +51,51 @@ public class LokiLogger : ILogger
         var message = new LokiMessage(messageText, logLevel)
         {
             Message = messageText,
-            AdditionalFields = GetAdditionalFields(logLevel, eventId, state, exception).ToArray()
+            AdditionalFields = GetAdditionalFields(logLevel, eventId, exception).ToArray()
         };
 
-        _messageProcessor.SendMessage(message);
+        _messageProcessor.EnqueueMessage(message);
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public bool IsEnabled(LogLevel logLevel)
     {
         return logLevel != LogLevel.None;
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public IDisposable? BeginScope<TState>(TState state)
         where TState : notnull
     {
-        return ScopeProvider?.Push(state) ?? NullScope.Instance;
+        return ScopeProvider?.Push(state);
     }
 
-    private IEnumerable<KeyValuePair<string, object>> GetAdditionalFields<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception)
+    private void UpdateOptions(LokiLoggerOptions options)
     {
-        var additionalFields = Options.AdditionalFields
+        _options = options;
+
+        if (string.IsNullOrEmpty(options.Host))
+        {
+            Debug.Fail("Loki host is required");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(options.ApplicationName))
+        {
+            Debug.Fail("Loki application name is required");
+            return;
+        }
+
+        _messageProcessor.SetWriter(new HttpLokiClient(options));
+    }
+
+    private IEnumerable<KeyValuePair<string, object>> GetAdditionalFields(LogLevel logLevel, EventId eventId, Exception? exception)
+    {
+        var additionalFields = _options.AdditionalFields
             .Concat(GetLokiAdditionalFields(logLevel))
             .Concat(GetFactoryAdditionalFields(logLevel, eventId, exception))
             .Concat(GetScopeAdditionalFields())
@@ -88,13 +128,13 @@ public class LokiLogger : ILogger
 
     private IEnumerable<KeyValuePair<string, object>> GetFactoryAdditionalFields(LogLevel logLevel, EventId eventId, Exception? exception)
     {
-        return Options.AdditionalFieldsFactory?.Invoke(logLevel, eventId, exception) ??
+        return _options.AdditionalFieldsFactory?.Invoke(logLevel, eventId, exception) ??
                Enumerable.Empty<KeyValuePair<string, object>>();
     }
 
     private IEnumerable<KeyValuePair<string, object>> GetScopeAdditionalFields()
     {
-        if (!Options.IncludeScopes)
+        if (!_options.IncludeScopes)
         {
             return Enumerable.Empty<KeyValuePair<string, object>>();
         }
@@ -155,7 +195,7 @@ public class LokiLogger : ILogger
 
     private IEnumerable<KeyValuePair<string, object>> GetPredefinedAdditionalFields(Exception? exception)
     {
-        if (!Options.IncludePredefinedFields)
+        if (!_options.IncludePredefinedFields)
         {
             return Enumerable.Empty<KeyValuePair<string, object>>();
         }
@@ -165,17 +205,22 @@ public class LokiLogger : ILogger
         if (exception is not null)
             additionalFields["ExceptionType"] = exception.GetType().ToString();
 
-        additionalFields["AppName"] = Options.ApplicationName;
+        additionalFields["AppName"] = _options.ApplicationName;
 
         additionalFields["AppVersion"] = Assembly.GetEntryAssembly()
              !.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
              !.InformationalVersion;
 
-        if (Options.MachineName is not null)
-            additionalFields["MachineName"] = Options.MachineName;
+        if (_options.MachineName is not null)
+            additionalFields["MachineName"] = _options.MachineName;
 
         additionalFields["Category"] = _name;
 
         return additionalFields.ToArray();
+    }
+
+    public void Dispose()
+    {
+        _optionsChangeToken?.Dispose();
     }
 }

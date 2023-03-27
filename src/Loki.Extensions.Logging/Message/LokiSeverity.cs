@@ -1,4 +1,4 @@
-﻿namespace Loki.Extensions.Logging.Processing;
+﻿namespace Loki.Extensions.Logging.Message;
 
 public enum LokiSeverity
 {

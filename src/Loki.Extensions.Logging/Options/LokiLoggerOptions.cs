@@ -1,5 +1,4 @@
-﻿using Loki.Extensions.Logging.Processing;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace Loki.Extensions.Logging.Options;
 

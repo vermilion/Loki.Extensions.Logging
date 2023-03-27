@@ -1,4 +1,4 @@
-﻿using Loki.Extensions.Logging.Processing;
+﻿using Loki.Extensions.Logging.Message;
 
 namespace Loki.Extensions.Logging.Providers;
 

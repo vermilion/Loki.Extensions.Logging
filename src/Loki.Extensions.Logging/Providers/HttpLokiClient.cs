@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
+using Loki.Extensions.Logging.Message;
 using Loki.Extensions.Logging.Options;
-using Loki.Extensions.Logging.Processing;
 
 namespace Loki.Extensions.Logging.Providers;
 

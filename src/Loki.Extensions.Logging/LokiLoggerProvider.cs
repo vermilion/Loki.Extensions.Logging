@@ -1,9 +1,6 @@
 ﻿using System.Collections.Concurrent;
-using Loki.Extensions.Logging.Helpers;
-using Loki.Extensions.Logging.Logger;
 using Loki.Extensions.Logging.Options;
 using Loki.Extensions.Logging.Processing;
-using Loki.Extensions.Logging.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -12,33 +9,32 @@ namespace Loki.Extensions.Logging;
 [ProviderAlias("Loki")]
 public class LokiLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
-    private readonly IOptionsMonitor<LokiLoggerOptions> _options;
-    private readonly ConcurrentDictionary<string, LokiLogger> _loggers;
-    private readonly IDisposable _optionsReloadToken;
+    private readonly ConcurrentDictionary<string, LokiLogger> _loggers = new();
 
-    private ILokiClient? _lokiClient;
-    private LokiMessageProcessor? _messageProcessor;
+    private readonly ILokiMessageProcessor _messageProcessor;
+    private readonly IOptionsMonitor<LokiLoggerOptions> _optionsMonitor;
     private IExternalScopeProvider? _scopeProvider;
 
-    public LokiLoggerProvider(IOptionsMonitor<LokiLoggerOptions> options)
+    public LokiLoggerProvider(ILokiMessageProcessor messageProcessor, IOptionsMonitor<LokiLoggerOptions> optionsMonitor)
     {
-        _options = options;
-        _loggers = new ConcurrentDictionary<string, LokiLogger>();
-
-        LoadLoggerOptions(options.CurrentValue);
-
-        var onOptionsChanged = Debouncer.Debounce<LokiLoggerOptions>(LoadLoggerOptions, TimeSpan.FromSeconds(1));
-        _optionsReloadToken = options.OnChange(onOptionsChanged);
+        _messageProcessor = messageProcessor;
+        _optionsMonitor = optionsMonitor;
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public ILogger CreateLogger(string name)
     {
-        return _loggers.GetOrAdd(name, newName => new LokiLogger(newName, _messageProcessor!, _options.CurrentValue)
+        return _loggers.GetOrAdd(name, newName => new LokiLogger(newName, _messageProcessor, _optionsMonitor)
         {
             ScopeProvider = _scopeProvider
         });
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public void SetScopeProvider(IExternalScopeProvider scopeProvider)
     {
         _scopeProvider = scopeProvider;
@@ -48,43 +44,11 @@ public class LokiLoggerProvider : ILoggerProvider, ISupportExternalScope
         }
     }
 
-    private void LoadLoggerOptions(LokiLoggerOptions options)
-    {
-        if (string.IsNullOrEmpty(options.Host))
-        {
-            throw new ArgumentException("Loki host is required.", nameof(options));
-        }
-
-        if (string.IsNullOrEmpty(options.ApplicationName))
-        {
-            throw new ArgumentException("Loki application name is required.", nameof(options));
-        }
-
-        var client = new HttpLokiClient(options);
-
-        if (_messageProcessor == null)
-        {
-            _messageProcessor = new LokiMessageProcessor(client);
-            _messageProcessor.Start();
-        }
-        else
-        {
-            _messageProcessor.LokiClient = client;
-            _lokiClient?.Dispose();
-        }
-
-        _lokiClient = client;
-
-        foreach (var logger in _loggers)
-        {
-            logger.Value.Options = options;
-        }
-    }
-
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
     public void Dispose()
     {
-        _messageProcessor?.Stop();
-        _lokiClient?.Dispose();
-        _optionsReloadToken.Dispose();
+        _messageProcessor?.Dispose();
     }
 }
