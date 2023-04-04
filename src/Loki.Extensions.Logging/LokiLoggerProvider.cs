@@ -21,9 +21,7 @@ public class LokiLoggerProvider : ILoggerProvider, ISupportExternalScope
         _optionsMonitor = optionsMonitor;
     }
 
-    /// <summary>
     /// <inheritdoc/>
-    /// </summary>
     public ILogger CreateLogger(string name)
     {
         return _loggers.GetOrAdd(name, newName => new LokiLogger(newName, _messageProcessor, _optionsMonitor)
@@ -32,9 +30,7 @@ public class LokiLoggerProvider : ILoggerProvider, ISupportExternalScope
         });
     }
 
-    /// <summary>
     /// <inheritdoc/>
-    /// </summary>
     public void SetScopeProvider(IExternalScopeProvider scopeProvider)
     {
         _scopeProvider = scopeProvider;
@@ -44,9 +40,7 @@ public class LokiLoggerProvider : ILoggerProvider, ISupportExternalScope
         }
     }
 
-    /// <summary>
     /// <inheritdoc/>
-    /// </summary>
     public void Dispose()
     {
         _messageProcessor?.Dispose();
