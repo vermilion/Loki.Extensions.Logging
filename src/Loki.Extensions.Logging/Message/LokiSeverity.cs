@@ -2,10 +2,10 @@
 
 public enum LokiSeverity
 {
-    TRCE,
-    DBUG,
-    INFO,
-    WARN,
-    EROR,
-    CRIT
+    Trace,
+    Debug,
+    Info,
+    Warning,
+    Error,
+    Critical
 }

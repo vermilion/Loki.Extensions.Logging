@@ -8,7 +8,7 @@ public class LokiMessage
     public LokiMessage(string message, LogLevel logLevel)
     {
         Message = message;
-        Level = GetLevel(logLevel);
+        Level = logLevel;
         Timestamp = GetTimestamp();
     }
 
@@ -16,7 +16,7 @@ public class LokiMessage
 
     public decimal Timestamp { get; set; }
 
-    public LokiSeverity Level { get; set; }
+    public LogLevel Level { get; set; }
 
     public IReadOnlyCollection<KeyValuePair<string, object>> AdditionalFields { get; set; } =
         Array.Empty<KeyValuePair<string, object>>();
@@ -25,19 +25,5 @@ public class LokiMessage
     {
         var epochStart = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         return (DateTime.UtcNow - epochStart).Ticks * 100;
-    }
-
-    private static LokiSeverity GetLevel(LogLevel logLevel)
-    {
-        return logLevel switch
-        {
-            LogLevel.Trace => LokiSeverity.TRCE,
-            LogLevel.Debug => LokiSeverity.DBUG,
-            LogLevel.Information => LokiSeverity.INFO,
-            LogLevel.Warning => LokiSeverity.WARN,
-            LogLevel.Error => LokiSeverity.EROR,
-            LogLevel.Critical => LokiSeverity.CRIT,
-            _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, "Log level not supported.")
-        };
     }
 }
